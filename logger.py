@@ -25,19 +25,42 @@ class IcLogger:
             ic.enable()
 
     def log(self, *args):
+        """Log arguments passed using the icecream library.
+
+        Parameters
+        ----------
+        *args : list
+            list of arguments to log
+        """
         if self.print_status:
             ic.enable()
             ic(args)
             ic.disable()
 
     def get_status(self):
+        """Return the current status of the logger.
+        """
         return self.print_status
 
     def set_status(self, status):
+        """Set the new status of the logger.
+
+        Parameters
+        ----------
+        status : boolean
+            new status for the logger.
+        """
         self.print_status = status
 
     @staticmethod
-    def print_always(*args):
+    def print(*args):
+        """Static method that prints always the arguments passed.
+
+         Parameters
+        ----------
+        *args : list
+            list of arguments to log
+        """
         ic.enable()
         ic(args)
         ic.disable()
