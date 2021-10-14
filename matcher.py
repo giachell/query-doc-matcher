@@ -2,7 +2,7 @@
 # QueryDocMatcher
 #
 # Author: Fabio Giachelle <giachelle.fabio@gmail.com>
-# URL: <http://nltk.org/>
+# URL: <https://github.com/giachell/query-doc-matcher>
 # License: MIT
 
 """
@@ -198,12 +198,22 @@ class QueryDocMatcher:
             "description": "What cities other than Washington D.C. has the First Lady visited on official business (i.e., accompanying the President or addressing audiences/attending events)?"
         }
 
+        # Log the topic
+        IcLogger.print_always(topic)
+
         corpus = [{'docno': 'DOC1', 'text': 'The sky is blue, actually very blue.'},
                   {'docno': 'DOC2',
                    'text': 'The sun is bright and blue in Washington D.C., New York city and other cities. New York citizens are over eight million.'}]
 
-        tfidf_matcher = QueryDocMatcher(topic, corpus[1], corpus, logging=True)
+        # Pick a document from the corpus
+        document = corpus[1]
+
+        # Log the document
+        IcLogger.print_always(document)
+
+        tfidf_matcher = QueryDocMatcher(topic, document, corpus, logging=True)
 
         top_k_matching_words = tfidf_matcher.get_words_to_highlight()
 
+        # Log the top-k matching_words
         IcLogger.print_always(top_k_matching_words)
