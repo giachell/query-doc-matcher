@@ -1,7 +1,7 @@
 #
 # QueryDocMatcher
 #
-# Author: Fabio Giachelle <giachelle.fabio@gmail.com>
+# Author: Fabio Giachelle <fabio.giachelle.pro@gmail.com>
 # URL: <https://github.com/giachell/query-doc-matcher>
 # License: MIT
 
