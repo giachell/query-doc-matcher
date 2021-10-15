@@ -194,7 +194,7 @@ class QueryDocMatcher:
                 if c_w is not None:
                     c_words_not_stemmed = self.map_stemmed_bow_doc_to_not_stemmed[c_w]
                     for c_w_not_stemmed in c_words_not_stemmed:
-                        top_k_matching_words.append((c_w_not_stemmed, self.df_tfidf._get_value(docno, c_w)))
+                        top_k_matching_words.append((c_w_not_stemmed, round(self.df_tfidf._get_value(docno, c_w), 2)))
 
         ic_logger.log(top_k_matching_words)
 
