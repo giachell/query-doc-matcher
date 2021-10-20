@@ -17,6 +17,7 @@ There is also a demo function: `matcher.demo()`.
 """
 import copy
 from operator import itemgetter
+import nltk
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
 from nltk.stem import WordNetLemmatizer
@@ -36,11 +37,14 @@ class QueryDocMatcher:
         self.k = k
         self.df_tfidf = df_tfidf
         self.bow_topic = set()
+        self.bow_topic_not_stemmed = set()
         self.bow_doc = set()
         self.bow_doc_stemmed = set()
         self.matching_bow_stemmed = set()
         self.matching_bow = set()
         self.map_stemmed_bow_doc_to_not_stemmed = None
+        self.map_stemmed_bow_topic_to_not_stemmed = None
+        nltk.download('stopwords')
 
     def get_bag_of_words(self, text, stopwords_removal=True, stemming=True, lemmatization=False, verbose=False):
         """Return the bag of words for the given text according to the parameters specified (stopwords_removal, stemming and lemmatization).
@@ -187,14 +191,23 @@ class QueryDocMatcher:
         # list of the top-k matching words
         top_k_matching_words = []
 
+        processed_words = []
+
         for w in self.matching_bow:
             c_w = None
             if w in self.df_tfidf.columns:
                 c_w = w
                 if c_w is not None:
                     c_words_not_stemmed = self.map_stemmed_bow_doc_to_not_stemmed[c_w]
+                    c_words_not_stemmed_topic = self.map_stemmed_bow_topic_to_not_stemmed[c_w]
                     for c_w_not_stemmed in c_words_not_stemmed:
-                        top_k_matching_words.append((c_w_not_stemmed, round(self.df_tfidf._get_value(docno, c_w), 2)))
+                        if c_w_not_stemmed not in processed_words:
+                            top_k_matching_words.append((c_w_not_stemmed, round(self.df_tfidf._get_value(docno, c_w), 2)))
+                            processed_words.append(c_w_not_stemmed)
+                    for c_w_not_stemmed_topic in c_words_not_stemmed_topic:
+                        if c_w_not_stemmed_topic not in processed_words:
+                            top_k_matching_words.append((c_w_not_stemmed_topic, round(self.df_tfidf._get_value(docno, c_w), 2)))
+                            processed_words.append(c_w_not_stemmed)
 
         ic_logger.log(top_k_matching_words)
 
@@ -221,7 +234,15 @@ class QueryDocMatcher:
                 if snow_stemmer.stem(bow_i_not_stemmed) == bow_i_stemmed:
                     dict_stemmed_not_stemmed[bow_i_stemmed].add(bow_i_not_stemmed)
 
+        dict_stemmed_not_stemmed_topic = {}
+        for bow_topic_i_stemmed in self.bow_topic:
+            dict_stemmed_not_stemmed_topic[bow_topic_i_stemmed] = set()
+            for bow_topic_i_not_stemmed in self.bow_topic_not_stemmed:
+                if snow_stemmer.stem(bow_topic_i_not_stemmed) == bow_topic_i_stemmed:
+                    dict_stemmed_not_stemmed_topic[bow_topic_i_stemmed].add(bow_topic_i_not_stemmed)
+
         self.map_stemmed_bow_doc_to_not_stemmed = copy.deepcopy(dict_stemmed_not_stemmed)
+        self.map_stemmed_bow_topic_to_not_stemmed = copy.deepcopy(dict_stemmed_not_stemmed_topic)
 
     def get_words_to_highlight(self, verbose=False):
         """Return the top-k matching words to highlight for the given topic (query) and document.
@@ -250,7 +271,8 @@ class QueryDocMatcher:
         doc_text = self.doc['text']
 
         # compute bow for topic and document (for the document compute bow in both cases: (not) stemmed)
-        self.bow_topic = self.get_bag_of_words(topic_joint_text)
+        self.bow_topic = self.get_bag_of_words(topic_joint_text, stemming=True)
+        self.bow_topic_not_stemmed = self.get_bag_of_words(topic_joint_text, stemming=False)
         self.bow_doc = self.get_bag_of_words(doc_text, stemming=False)
         self.bow_doc_stemmed = self.get_bag_of_words(doc_text, stemming=True)
 
